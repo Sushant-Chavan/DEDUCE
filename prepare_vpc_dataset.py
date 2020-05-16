@@ -14,6 +14,22 @@ import numpy as np
 
 from config import vpc_dir
 
+def remove_all_directories():
+    for name in os.listdir(vpc_dir):
+        path = os.path.join(vpc_dir, name)
+        if os.path.isdir(path):
+            print('Removing existing directory:', path)
+            shutil.rmtree(path)
+
+def unzip_files():
+    remove_all_directories()
+    for name in os.listdir(vpc_dir):
+        if 'zip' in name:
+            zip_file_path = os.path.join(vpc_dir, name)
+            print('Unziping file:', zip_file_path)
+            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+                zip_ref.extractall(vpc_dir)
+
 def parse_dataset_labels(labels):
     label_sequences = {}
     label_dict = {}
@@ -48,27 +64,12 @@ def parse_desired_labels():
         labels = [line.split()[0].split('/')[-1] for line in label_data]
     return labels
 
-def remove_all_directories():
-    for name in os.listdir(vpc_dir):
-        path = os.path.join(vpc_dir, name)
-        if os.path.isdir(path):
-            print('Removing existing directory:', path)
-            shutil.rmtree(path)
-
-def unzip_files():
-    remove_all_directories()
-    for name in os.listdir(vpc_dir):
-        if 'zip' in name:
-            zip_file_path = os.path.join(vpc_dir, name)
-            print('Unziping file:', zip_file_path)
-            with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-                zip_ref.extractall(vpc_dir)
-
 def main():
     unzip_files()
+    desired_labels = parse_desired_labels()
+
     homes = [os.path.join(vpc_dir, home) for home in os.listdir(vpc_dir) 
             if 'Home' in home and os.path.isdir(os.path.join(vpc_dir, home))]
-    desired_labels = parse_desired_labels()
 
     for home in homes:
         home_id = home.split('/')[-1]
@@ -88,8 +89,10 @@ def main():
                         os.makedirs(label_dir)
                     # Move the relevant images to the label directory
                     for image in labels[floor][desired_label]:
-                        src = os.path.join(floor_path, "{0:0=8d}.jpg".format(image))
-                        dest = os.path.join(label_dir, "{0:0=8d}.jpg".format(image))
+                        src = os.path.join(floor_path,
+                                           "{0:0=8d}.jpg".format(image))
+                        dest = os.path.join(label_dir,
+                                            "{0:0=8d}.jpg".format(image))
                         if not os.path.isfile(src):
                             raise FileNotFoundError(errno.ENOENT, 
                                                     os.strerror(errno.ENOENT), 
