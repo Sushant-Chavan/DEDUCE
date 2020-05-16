@@ -1,0 +1,8 @@
+# Ignore auto generated files
+config.pyc
+.vscode/
+__pycache__/
+
+# Ignore model files 
+models/*
+yolov3/yolov3.weights
